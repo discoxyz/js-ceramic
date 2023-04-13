@@ -1,5 +1,5 @@
 import { Observable, Subscription, timer } from 'rxjs'
-import { throttle } from 'rxjs/operators'
+import { catchError, retry, throttle } from 'rxjs/operators'
 import {
   CeramicCommit,
   CreateOpts,
@@ -26,7 +26,14 @@ export class Document extends Observable<StreamState> implements RunningStateLik
       const isFirstObserver = this.state$.observers.length === 0
       if (isFirstObserver) {
         this.periodicSubscription = timer(0, syncInterval)
-          .pipe(throttle(() => this._syncState(this.id, { sync: SyncOptions.PREFER_CACHE })))
+          .pipe(
+            throttle(() => this._syncState(this.id, { sync: SyncOptions.PREFER_CACHE })),
+            catchError((error) => {
+              console.warn('Ceramic Sync Error... Restarting Sync...', error);
+              return error
+            }),
+            retry({ delay: syncInterval * 12 })
+          )
           .subscribe()
       }
       this.state$.subscribe(subscriber).add(() => {

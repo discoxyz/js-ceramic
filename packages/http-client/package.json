@@ -1,5 +1,5 @@
 {
-  "name": "@ceramicnetwork/http-client",
+  "name": "@discoxyz/ceramic-http-client",
   "version": "2.7.0",
   "description": "An http client for the ceramic network",
   "keywords": [
